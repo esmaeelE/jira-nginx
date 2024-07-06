@@ -1,0 +1,73 @@
+version: '3.4'                                                                                                                                                 
+services:                                                                                                                                                      
+  jira:                                                                                                                                                        
+    image: haxqer/jira:9.17.0                                                                                                                                  
+    container_name: jira-srv                                                                                                                                   
+    environment:                                                                                                                                               
+      - TZ=Asia/Tehran                                                                                                                                         
+#      - JVM_MINIMUM_MEMORY=1g                                                                                                                                 
+#      - JVM_MAXIMUM_MEMORY=12g                                                                                                                                
+#      - JVM_CODE_CACHE_ARGS='-XX:InitialCodeCacheSize=1g -XX:ReservedCodeCacheSize=8g'                                                                        
+    depends_on:                                                                                                                                                
+      - mysql                                                                                                                                                  
+    volumes:                                                                                                                                                   
+      - ./jira_data:/var/jira                                                                                                                                  
+      - ./server.xml:/opt/jira/conf/server.xml                                                                                                                 
+    ports:                                                                                                                                                     
+      - "127.0.0.1:8080:8080"                                                                                                                                  
+    restart: always                                                                                                                                            
+    networks:                                                                                                                                                  
+      - backend                                                                                                                                                
+                                                                                                                                                               
+  mysql:                                                                                                                                                       
+    image: mysql:8.0                                                                                                                                           
+    container_name: mysql-jira                                                                                                                                 
+    environment:                                                                                                                                               
+      - TZ=Asia/Tehran                                                                                                                                         
+      - MYSQL_DATABASE=jira                                                                                                                                    
+      - MYSQL_ROOT_PASSWORD=123456                                                                                                                             
+      - MYSQL_USER=jira                                                                                                                                        
+      - MYSQL_PASSWORD=123123                                                                                                                                  
+    command: ['mysqld', '--character-set-server=utf8mb4', '--collation-server=utf8mb4_bin']                                                                    
+    volumes:                                                                                                                                                   
+      - ./mysql_data:/var/lib/mysql                                                                                                                            
+    restart: always                                                                                                                                            
+    networks:                                                                                                                                                  
+      - backend
+
+  npm-app:
+    image: jc21/nginx-proxy-manager:latest
+    restart: always
+    ports:
+      - "80:80"
+      - "81:81"
+      - "443:443"
+    environment:
+      - DB_MYSQL_HOST=npm-db
+      - DB_MYSQL_PORT=3306
+      - DB_MYSQL_USER=npm
+      - DB_MYSQL_PASSWORD=replace-with-secure-password
+      - DB_MYSQL_NAME=npm
+    volumes:
+      - ./npm-data:/data
+      - ./npm-ssl:/etc/letsencrypt
+    networks:
+      - frontend
+      - backend
+
+  npm-db:
+    image: jc21/mariadb-aria:latest
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD=replace-with-secure-password
+      - MYSQL_DATABASE=npm
+      - MYSQL_USER=npm
+      - MYSQL_PASSWORD=replace-with-secure-password
+    volumes:
+      - ./npm-db:/var/lib/mysql
+    networks:
+      - backend
+
+networks:
+  frontend:
+  backend:
