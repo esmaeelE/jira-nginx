@@ -5,11 +5,12 @@ Docker image and atlassian-agent are based on [haxqer/jira](https://github.com/h
 This is persistance installation of Jira with docker as we mapped current directory to store **jira_data** and **mysql_data** to docker container.
 You can change them in real production environemt.
 
-In this file replace all occurance of `jira.example.com` with your domain.
 
 ## Initialization
 
 Inside `server.xml` file change `jira.example.com` to your FQDN.
+replace all occurance of `jira.example.com` with your domain.
+
 You can get a free domain from `https://www.noip.com/`
 After getting domain, resolve it to your public IP in noip.com panel.
 
